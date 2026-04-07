@@ -4,7 +4,7 @@
 
 #define WIDTH 900
 #define HEIGHT 600
-#define CELL_WIDTH 30
+#define CELL_WIDTH 10
 #define COLUMNS WIDTH / CELL_WIDTH
 #define ROWS HEIGHT / CELL_WIDTH
 #define LINE_WIDTH 2
@@ -61,6 +61,98 @@ void initialize_game_matrix(int rows, int columns, int game_matrix[][columns])
   }
 }
 
+int count_neighbors(int i, int j, int rows, int columns, int game_matrix[][columns])
+{
+  int neighbor_counter = 0;
+
+  //left neighbor
+  if (j > 0)
+  {
+    neighbor_counter += game_matrix[i][j-1];
+  }
+
+  //right neighbor
+  if (j < (columns - 1))
+  {
+    neighbor_counter += game_matrix[i][j+1];
+  }
+  
+  //above neighbor
+  if (i > 0)
+  {
+    neighbor_counter += game_matrix[i-1][j];
+  }
+
+  //below neighbor
+  if (i < (rows - 1))
+  {
+    neighbor_counter += game_matrix[i+1][j];
+  }
+  
+  //above left neighbor
+  if (i > 0 && j > 0)
+  {
+    neighbor_counter += game_matrix[i-1][j-1];
+  }
+
+  //above right neighbor
+  if (i > 0 && j < (columns - 1))
+  {
+    neighbor_counter += game_matrix[i-1][j+1];
+  }
+  
+  //below left neighbor
+  if (i < (rows - 1) && j > 0)
+  {
+    neighbor_counter += game_matrix[i+1][j-1];
+  }
+
+  //below right neighbor
+  if (i < (rows - 1) && j < (columns - 1))
+  {
+    neighbor_counter += game_matrix[i+1][j+1];
+  }
+
+  return neighbor_counter;
+}
+
+void simulation_step(int rows, int columns, int game_matrix[][columns])
+{
+
+  int neighbor_count[rows][columns];
+
+  for (int i=0; i<rows; i++)
+  {
+    for (int j=0; j<columns; j++)
+    {
+      neighbor_count[i][j] = count_neighbors(i,j, rows, columns, game_matrix);
+    }
+  }
+
+  for (int i=0; i<rows; i++)
+  {
+    for (int j=0; j<columns; j++)
+    {
+      if (neighbor_count[i][j] < 2)
+      {
+        game_matrix[i][j] = 0;
+      }
+
+      if ((neighbor_count[i][j] > 3) && (game_matrix[i][j] != 0))
+      {
+        game_matrix[i][j] = 0;
+      }
+
+      if ((neighbor_count[i][j] == 3) && (game_matrix[i][j] == 0))
+      {
+        game_matrix[i][j] = 1;
+      }
+
+    }
+  }
+
+}
+
 void main()
 {
   SDL_Init(SDL_INIT_VIDEO);
@@ -78,6 +170,8 @@ void main()
   int cell_x = 10;
   int cell_y = 5;
 
+  initialize_game_matrix(rows, columns, game_matrix);
+  
   int app_running = 1;
   while(app_running)
   {
@@ -90,11 +184,11 @@ void main()
       }
     }
     
-  initialize_game_matrix(rows, columns, game_matrix);
+  simulation_step(rows, columns, game_matrix);
   draw_game_matrix(surface, rows, columns, game_matrix);
   draw_grid(surface);
   SDL_UpdateWindowSurface(window);
-  SDL_Delay(1000);
+  SDL_Delay(500);
   }
 
 }
