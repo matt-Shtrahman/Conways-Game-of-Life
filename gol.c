@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <SDL2/SDL.h>
+#include <stdlib.h>
 
 #define WIDTH 900
 #define HEIGHT 600
@@ -10,17 +11,19 @@
 
 Uint32 COLOR_WHITE = 0xFFFFFF;
 Uint32 COLOR_GRAY = 0x2F2F2F2F;
+Uint32 COLOR_BLACK = 0x00000000;
 
-int draw_cell(SDL_Surface* surface, int cell_x, int cell_y)
+void draw_cell(SDL_Surface* surface, int cell_x, int cell_y, int cell_value)
 {
   int pixel_x = cell_x * CELL_WIDTH;
   int pixel_y = cell_y * CELL_WIDTH;
+  Uint32 color = cell_value == 0 ? COLOR_BLACK : COLOR_WHITE;
 
   SDL_Rect cell = (SDL_Rect){pixel_x, pixel_y, CELL_WIDTH, CELL_WIDTH};
-  SDL_FillRect(surface, &cell, COLOR_WHITE);
+  SDL_FillRect(surface, &cell, color);
 }
 
-int draw_grid(SDL_Surface* surface)
+void draw_grid(SDL_Surface* surface)
 {
   for(int i=0; i<ROWS; i++)
   {
@@ -35,7 +38,30 @@ int draw_grid(SDL_Surface* surface)
   }
 } 
 
-int main()
+void draw_game_matrix(SDL_Surface* surface, int rows, int columns, int game_matrix[][columns])
+{
+  for (int i=0; i<rows; i++)
+  {
+    for (int j=0; j<columns; j++)
+    {
+      int cell_value = game_matrix[i][j];
+      draw_cell(surface, j, i, cell_value);
+    }
+  }
+}
+
+void initialize_game_matrix(int rows, int columns, int game_matrix[][columns])
+{
+  for (int i=0; i<rows; i++)
+  {
+    for (int j=0; j<columns; j++)
+    {
+      game_matrix[i][j] = rand() % 2;
+    }
+  }
+}
+
+void main()
 {
   SDL_Init(SDL_INIT_VIDEO);
 
@@ -48,14 +74,9 @@ int main()
   SDL_Surface* surface = SDL_GetWindowSurface(window);
   SDL_Rect rect = (SDL_Rect){WIDTH/2, HEIGHT/2, 20, 20};
 
+  int game_matrix[rows][columns];
   int cell_x = 10;
   int cell_y = 5;
-
-  draw_cell(surface, cell_x, cell_y);
-  draw_grid(surface);
-
-
-  SDL_UpdateWindowSurface(window);
 
   int app_running = 1;
   while(app_running)
@@ -68,6 +89,12 @@ int main()
         app_running = 0;
       }
     }
+    
+  initialize_game_matrix(rows, columns, game_matrix);
+  draw_game_matrix(surface, rows, columns, game_matrix);
+  draw_grid(surface);
+  SDL_UpdateWindowSurface(window);
+  SDL_Delay(1000);
   }
 
 }
